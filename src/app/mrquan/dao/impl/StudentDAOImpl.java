@@ -19,10 +19,11 @@ public class StudentDAOImpl implements IStudentDAO {
     }
     @Override
     public int add(Student vo) throws SQLException {
-        int len = 0;
+        int lenAll = 0;
         try {
+            con.setAutoCommit(false);//1,首先把Auto commit设置为false,不让它自动提交
+            //Student表
             preparedStatement = con.prepareStatement("insert into student values (?,?,?,?,?)");
-
             preparedStatement.setString(1,vo.getId());
             preparedStatement.setString(2,vo.getName());
             preparedStatement.setBoolean(3,vo.getSex());
@@ -33,23 +34,38 @@ public class StudentDAOImpl implements IStudentDAO {
                 bytes[i] = vo.getHeadPortrait()[i];
             }
             preparedStatement.setBytes(5,bytes);
-
-            len = preparedStatement.executeUpdate();
+            preparedStatement.addBatch();
+            preparedStatement.executeBatch();
+            //telephone表
+            String id = vo.getId();
+            List<String> trls = vo.getTels();
+            preparedStatement = con.prepareStatement("insert into telephone values (?,?)");
+            for (int i = 0; i < trls.size(); i++) {
+                preparedStatement.setString(1,id);
+                preparedStatement.setString(2,trls.get(i));
+                preparedStatement.addBatch();
+            }
+            preparedStatement.executeBatch();
+            con.commit();//2,进行手动提交（commit
+            lenAll = 1;
         } catch (SQLException e) {
+            con.rollback();
             throw e;
         }finally {
+            con.setAutoCommit(true);//3,提交完成后回复现场将Auto commit,还原为true,
             databaseConnection.close();
-            return len;
+            return lenAll;
         }
     }
 
     @Override
     public int add(List<Student> vos) throws SQLException {
-        int lenTrue=0;
+        int lenAll=0;
         try {
-            preparedStatement = con.prepareStatement("insert into student values (?,?,?,?,?)");
             con.setAutoCommit(false);//1,首先把Auto commit设置为false,不让它自动提交
             for (int i = 0; i < vos.size(); i++) {
+                //student表
+                preparedStatement = con.prepareStatement("insert into student values (?,?,?,?,?)");
                 preparedStatement.setString(1,vos.get(i).getId());
                 preparedStatement.setString(2,vos.get(i).getName());
                 preparedStatement.setBoolean(3,vos.get(i).getSex());
@@ -61,18 +77,27 @@ public class StudentDAOImpl implements IStudentDAO {
                 }
                 preparedStatement.setBytes(5,bytes);
                 preparedStatement.addBatch();
+                preparedStatement.executeBatch();
+                //telephone表
+                String id = vos.get(i).getId();
+                List<String> trls = vos.get(i).getTels();
+                preparedStatement = con.prepareStatement("insert into telephone values (?,?)");
+                for (int j = 0; j < trls.size(); j++) {
+                    preparedStatement.setString(1,id);
+                    preparedStatement.setString(2,trls.get(j));
+                    preparedStatement.addBatch();
+                }
+                preparedStatement.executeBatch();
             }
-            int[] len = preparedStatement.executeBatch();
-            // 若成功执行完所有的插入操作，则正常结束
-            con.commit();//2,进行手动提交（commit）
-            lenTrue = len.length;
+            con.commit();//2,进行手动提交（commit
+            lenAll = vos.size();
         }catch (SQLException e){
             con.rollback();
             throw e;
         }finally {
             con.setAutoCommit(true);//3,提交完成后回复现场将Auto commit,还原为true,
             databaseConnection.close();
-            return lenTrue;
+            return lenAll;
         }
     }
 
@@ -84,6 +109,7 @@ public class StudentDAOImpl implements IStudentDAO {
             preparedStatement.setString(1,id);
             ResultSet rs = preparedStatement.executeQuery();
             if (rs.next()){
+                //student表
                 vo = new Student();
                 vo.setId(rs.getString(1));
                 vo.setName(rs.getString(2));
@@ -95,6 +121,15 @@ public class StudentDAOImpl implements IStudentDAO {
                 int i = 0;
                 for (byte b : byteBytes) bytes[i++] = b;
                 vo.setHeadPortrait(bytes);
+                //telephone表
+                List<String> allTel = new ArrayList<>();
+                preparedStatement = con.prepareStatement("select tel from telephone where id = ?");
+                preparedStatement.setString(1,id);
+                ResultSet rsTel = preparedStatement.executeQuery();
+                while (rsTel.next()){
+                    allTel.add(rsTel.getString("tel"));
+                }
+                vo.setTels(allTel);
             }
         } catch (SQLException e) {
             throw e;
@@ -112,8 +147,10 @@ public class StudentDAOImpl implements IStudentDAO {
             preparedStatement = con.prepareStatement("select * from student");
             ResultSet rs = preparedStatement.executeQuery();
             while(rs.next()){
+                //Student表
                 vo = new Student();
-                vo.setId(rs.getString(1));
+                String id = rs.getString(1);
+                vo.setId(id);
                 vo.setName(rs.getString(2));
                 vo.setSex(rs.getBoolean(3));
                 vo.setBirthday(rs.getDate(4));
@@ -123,6 +160,15 @@ public class StudentDAOImpl implements IStudentDAO {
                 int i = 0;
                 for (byte b : byteBytes) bytes[i++] = b;
                 vo.setHeadPortrait(bytes);
+                //telephone表
+                List<String> allTel = new ArrayList<>();
+                preparedStatement = con.prepareStatement("select tel from telephone where id = ?");
+                preparedStatement.setString(1,id);
+                ResultSet rsTel = preparedStatement.executeQuery();
+                while (rsTel.next()){
+                    allTel.add(rsTel.getString("tel"));
+                }
+                vo.setTels(allTel);
 
                 all.add(vo);
             }

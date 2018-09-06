@@ -5,64 +5,26 @@ import app.mrquan.service.IStudentService;
 import app.mrquan.vo.Student;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class StudentServiceImpl implements IStudentService {
     @Override
-    public int[] insert(Student vo) throws SQLException {
-        int[]len = {0,0};
-        if (DAOFactory.getIStudentDAOInstance().findById(vo.getId())==null){//id不存在
-            len[0] = DAOFactory.getIStudentDAOInstance().add(vo);
-            if (len[0]==1){
-                len[1] = DAOFactory.getITelephoneDAOInstance().add(vo);
-            }
-        }
-        return len;
+    public int insert(Student vo) throws SQLException {
+        return DAOFactory.getIStudentDAOInstance().add(vo);
     }
 
     @Override
-    public int[] insert(List<Student> vos) throws SQLException {
-        int[] len = {0,0};
-        len[0] = DAOFactory.getIStudentDAOInstance().add(vos);
-        if (len[0]>0){
-            len[1] = DAOFactory.getITelephoneDAOInstance().add(vos);
-        }
-        return len;
-    }
-
-    @Override
-    public int insertTel(String id, String tel) throws SQLException {
-        if(DAOFactory.getIStudentDAOInstance().findById(id) != null){
-            Student vo = new Student();
-            List<String> addTel = new ArrayList<>();
-            addTel.add(tel);
-            vo.setId(id);
-            vo.setTels(addTel);
-            return DAOFactory.getITelephoneDAOInstance().add(vo);
-        }else {
-            return 0;
-        }
+    public int insert(List<Student> vos) throws SQLException {
+        return DAOFactory.getIStudentDAOInstance().add(vos);
     }
 
     @Override
     public Student get(String id) throws SQLException {
-        Student vo = DAOFactory.getIStudentDAOInstance().findById(id);
-        if (vo!=null){
-            vo.setTels(DAOFactory.getITelephoneDAOInstance().findByID(id));
-        }
-        return vo;
+        return DAOFactory.getIStudentDAOInstance().findById(id);
     }
 
     @Override
     public List<Student> list() throws SQLException {
-        List<Student> vos;
-        vos = DAOFactory.getIStudentDAOInstance().findAll();
-        for (int i = 0; i < vos.size(); i++) {
-            if (vos.get(i)!=null){
-                vos.get(i).setTels(DAOFactory.getITelephoneDAOInstance().findByID(vos.get(i).getId()));
-            }
-        }
-        return vos;
+        return DAOFactory.getIStudentDAOInstance().findAll();
     }
 }

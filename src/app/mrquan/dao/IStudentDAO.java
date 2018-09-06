@@ -36,5 +36,4 @@ public interface IStudentDAO {
      * @throws SQLException
      */
     List<Student> findAll() throws SQLException;
-
 }

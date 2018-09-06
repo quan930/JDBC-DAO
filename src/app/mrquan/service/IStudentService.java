@@ -14,7 +14,7 @@ public interface IStudentService {
      * @return
      * @throws SQLException
      */
-    int[] insert(Student vo) throws SQLException;
+    int insert(Student vo) throws SQLException;
     /**
      * 学生数据的批处理增加操作
      * 需要在创建list<Telephone>集合对象
@@ -22,16 +22,17 @@ public interface IStudentService {
      * @return
      * @throws SQLException
      */
-    int[] insert(List<Student> vos) throws SQLException;
+    int insert(List<Student> vos) throws SQLException;
 
-    /**
-     * 判断id是否存在，根据id号增加电话号码
-     * @param id 要加telephone表的id
-     * @param tel 要加telephone表的tel
-     * @return 成功返回1否则返回0
-     * @throws SQLException
-     */
-    int insertTel(String id,String tel) throws SQLException;
+//    /**
+//     * 判断id是否存在，根据id号增加电话号码
+//     * @param id 要加telephone表的id
+//     * @param tel 要加telephone表的tel
+//     * @return 成功返回1否则返回0
+//     * @throws SQLException
+//     */
+//    int insertTel(String id,String tel) throws SQLException;
+
     /**
      * 根据学生id返回student vo对象和电话集合
      * @param id 需要查询的对象
